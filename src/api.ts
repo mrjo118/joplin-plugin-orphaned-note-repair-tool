@@ -4,7 +4,6 @@ interface JoplinApi {
   data: {
     get(path: string[], query?: Record<string, unknown>): Promise<any>;
     post(path: string[], query: Record<string, unknown> | null, body: Record<string, unknown>): Promise<any>;
-    put(path: string[], query: Record<string, unknown> | null, body: Record<string, unknown>): Promise<any>;
   };
   commands: {
     register(command: { name: string; label: string; iconName?: string; execute(): Promise<void> }): Promise<void>;

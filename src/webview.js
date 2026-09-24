@@ -5,9 +5,6 @@ const progressText = document.getElementById('progressText');
 const status = document.getElementById('status');
 const results = document.getElementById('results');
 const empty = document.getElementById('empty');
-const conflictActions = document.getElementById('conflictActions');
-const moveConflictsButton = document.getElementById('moveConflicts');
-const conflictMessage = document.getElementById('conflictMessage');
 
 const rows = new Map();
 
@@ -22,8 +19,6 @@ function resetResults() {
   rows.clear();
   results.replaceChildren();
   empty.hidden = false;
-  conflictActions.hidden = true;
-  conflictMessage.replaceChildren();
 }
 
 function countLabel(entry) {
@@ -87,40 +82,6 @@ stopButton.addEventListener('click', async () => {
   await webviewApi.postMessage({ type: 'stop' });
 });
 
-moveConflictsButton.addEventListener('click', async () => {
-  const confirmed = window.confirm(
-    'Move all eligible deleted note conflicts found by the completed scan to their original notebooks? This will clear their conflict status.',
-  );
-  if (!confirmed) return;
-
-  moveConflictsButton.disabled = true;
-  conflictMessage.textContent = 'Checking original notebooks...';
-  const response = await webviewApi.postMessage({ type: 'move-eligible-conflicts' });
-  if (response.ok) {
-    conflictActions.hidden = true;
-    status.textContent = `${response.moved} deleted note ${response.moved === 1 ? 'conflict was' : 'conflicts were'} moved to original notebooks.`;
-    return;
-  }
-
-  moveConflictsButton.disabled = false;
-  conflictMessage.replaceChildren();
-  if (response.reason === 'missing-notebooks') {
-    const explanation = document.createElement('p');
-    explanation.textContent = 'Create these notebooks first:';
-    const list = document.createElement('ul');
-    for (const id of response.missingIds) {
-      const item = document.createElement('li');
-      const code = document.createElement('code');
-      code.textContent = id;
-      item.append(code);
-      list.append(item);
-    }
-    conflictMessage.append(explanation, list);
-  } else {
-    conflictMessage.textContent = `Could not move conflict notes: ${response.detail}`;
-  }
-});
-
 webviewApi.onMessage(event => {
   const message = event.message;
   switch (message.type) {
@@ -141,11 +102,6 @@ webviewApi.onMessage(event => {
     case 'scan-completed':
       setScanning(false);
       status.textContent = `Scan completed. ${message.count} missing ${message.count === 1 ? 'notebook' : 'notebooks'} found.`;
-      conflictActions.hidden = message.eligibleConflictCount === 0;
-      moveConflictsButton.disabled = false;
-      if (message.eligibleConflictCount > 0) {
-        conflictMessage.textContent = `${message.eligibleConflictCount} eligible deleted note ${message.eligibleConflictCount === 1 ? 'conflict is' : 'conflicts are'} ready to move. All original notebooks must exist first.`;
-      }
       break;
     case 'scan-stopped':
       setScanning(false);

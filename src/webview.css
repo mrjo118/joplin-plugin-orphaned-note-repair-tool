@@ -50,12 +50,3 @@ progress { width: 100%; }
 .result div { display: grid; min-width: 0; gap: 4px; }
 .result code { overflow-wrap: anywhere; }
 .count { color: var(--joplin-color-faded, GrayText); font-size: .9em; }
-.conflict-actions {
-  margin-top: 16px;
-  border-top: 1px solid var(--joplin-divider-color, #8886);
-  padding-top: 16px;
-}
-.conflict-actions[hidden] { display: none; }
-.conflict-message { margin-top: 10px; }
-.conflict-message p { margin-bottom: 4px; }
-.conflict-message ul { margin-top: 0; padding-left: 24px; }

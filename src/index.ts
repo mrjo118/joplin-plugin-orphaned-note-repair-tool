@@ -8,12 +8,6 @@ interface JoplinItem {
   title?: string;
   deleted_time?: number;
   is_conflict?: number;
-  conflict_original_id?: string;
-}
-
-interface ScannedConflict {
-  noteId: string;
-  parentId: string;
 }
 
 interface Page<T> {
@@ -34,8 +28,8 @@ interface Progress {
 }
 
 const PAGE_SIZE = 100;
-const PANEL_ID = 'orphanedNoteAndConflictRepairPanel';
-const COMMAND_ID = 'openOrphanedNoteAndConflictRepairTool';
+const PANEL_ID = 'orphanedNoteRepairPanel';
+const COMMAND_ID = 'openOrphanedNoteRepairTool';
 
 let panelHandle = '';
 let scanRunning = false;
@@ -43,7 +37,6 @@ let stopRequested = false;
 let missing = new Map<string, MissingNotebook>();
 let repairedIds = new Set<string>();
 let recreationQueue: Promise<unknown> = Promise.resolve();
-let scannedConflicts: ScannedConflict[] = [];
 
 const panelHtml = `
 <!doctype html>
@@ -51,7 +44,7 @@ const panelHtml = `
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body>
   <main>
-    <h2>Orphaned note and conflict repair tool</h2>
+    <h2>Orphaned note repair tool</h2>
     <p class="description">Find notes and notebooks that refer to a missing parent notebook.</p>
     <p>Please note, before scanning you should <strong>manually</strong> click the main sync button and ensure that the sync completes without errors. If you do not do this, recreated notebooks may be deleted immediately after recreating them.</p>
     <div class="controls">
@@ -68,10 +61,6 @@ const panelHtml = `
       <p id="empty">No missing notebooks found.</p>
       <ul id="results" class="results"></ul>
     </section>
-    <section id="conflictActions" class="conflict-actions" hidden>
-      <button id="moveConflicts" type="button">Move deleted note conflicts to original notebooks</button>
-      <div id="conflictMessage" class="conflict-message" role="status"></div>
-    </section>
   </main>
 </body>
 </html>`;
@@ -82,11 +71,10 @@ async function send(message: Record<string, unknown>) {
 
 async function getPage(path: 'notes' | 'folders', page: number): Promise<Page<JoplinItem>> {
   const query: Record<string, unknown> = {
-    fields: path === 'notes' ? ['id', 'parent_id', 'is_conflict', 'conflict_original_id'] : ['id', 'parent_id', 'title', 'deleted_time'],
+    fields: path === 'notes' ? ['id', 'parent_id', 'is_conflict'] : ['id', 'parent_id', 'title', 'deleted_time'],
     page,
     limit: PAGE_SIZE,
   };
-  if (path === 'notes') query.include_conflicts = '1';
   if (path === 'folders') query.include_deleted = '1';
   return joplin.data.get([path], query);
 }
@@ -128,11 +116,8 @@ async function scanItems(
 ): Promise<boolean> {
   const inspect = async (item: JoplinItem) => {
     if (stopRequested) return false;
+    if (itemType === 'note' && item.is_conflict) return true;
     const parentId = item.parent_id || '';
-    if (itemType === 'note' && item.is_conflict && !item.conflict_original_id) {
-      const conflict = { noteId: item.id, parentId };
-      scannedConflicts.push(conflict);
-    }
     if (parentId && !existingIds.has(parentId)) await recordMissing(parentId, itemType);
     progress.scanned += 1;
     await send({ type: 'progress', progress });
@@ -159,7 +144,6 @@ async function runScan() {
   stopRequested = false;
   missing = new Map();
   repairedIds = new Set();
-  scannedConflicts = [];
   await send({ type: 'scan-started' });
 
   try {
@@ -183,11 +167,7 @@ async function runScan() {
       await send({ type: 'scan-stopped', count: missing.size });
       return;
     }
-    await send({
-      type: 'scan-completed',
-      count: missing.size,
-      eligibleConflictCount: scannedConflicts.length,
-    });
+    await send({ type: 'scan-completed', count: missing.size });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     await send({ type: 'scan-failed', detail });
@@ -231,42 +211,6 @@ async function recreateNotebook(id: string) {
   }
 }
 
-async function allNotebookIds(): Promise<Set<string>> {
-  const ids = new Set<string>();
-  for (let page = 1; ; page += 1) {
-    const response = await getPage('folders', page);
-    for (const folder of response.items) ids.add(folder.id);
-    if (!response.has_more) return ids;
-  }
-}
-
-async function moveEligibleConflicts() {
-  if (!scannedConflicts.length) {
-    return { ok: false, detail: 'There are no eligible conflicts from a completed scan.' };
-  }
-
-  try {
-    const existingIds = await allNotebookIds();
-    const missingIds = [...new Set(
-      scannedConflicts
-        .map(conflict => conflict.parentId)
-        .filter(parentId => parentId && !existingIds.has(parentId)),
-    )];
-    if (missingIds.length) return { ok: false, reason: 'missing-notebooks', missingIds };
-
-    let moved = 0;
-    for (const conflict of scannedConflicts) {
-      await joplin.data.put(['notes', conflict.noteId], null, { is_conflict: 0 });
-      moved += 1;
-    }
-    scannedConflicts = [];
-    return { ok: true, moved };
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    return { ok: false, detail };
-  }
-}
-
 joplin.plugins.register({
   onStart: async () => {
     const { platform } = await joplin.versionInfo();
@@ -290,13 +234,12 @@ joplin.plugins.register({
         recreationQueue = result.then(() => undefined, () => undefined);
         return result;
       }
-      if (message?.type === 'move-eligible-conflicts') return moveEligibleConflicts();
     });
 
     if (platform === 'desktop') {
       await joplin.commands.register({
         name: COMMAND_ID,
-        label: 'Orphaned note and conflict repair tool',
+        label: 'Orphaned note repair tool',
         iconName: 'fas fa-wrench',
         execute: async () => {
           const isVisible = await joplin.views.panels.visible(panelHandle);
@@ -304,7 +247,7 @@ joplin.plugins.register({
         },
       });
       await joplin.views.menuItems.create(
-        'openOrphanedNoteAndConflictRepairToolMenuItem',
+        'openOrphanedNoteRepairToolMenuItem',
         COMMAND_ID,
         'tools',
       );

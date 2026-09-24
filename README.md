@@ -1,10 +1,8 @@
 # Orphaned note repair tool
 
-A Joplin desktop and mobile plugin that finds notes and notebooks whose `parent_id` refers to a notebook that no longer exists. The scan includes notes in Joplin's virtual Conflicts notebook.
+A Joplin desktop and mobile plugin that finds notes and notebooks whose `parent_id` refers to a notebook that no longer exists. Notes in Joplin's virtual Conflicts notebook are excluded from the scan.
 
-After a completed scan, the **Move deleted note conflicts to original notebooks** action can clear the conflict status of every conflict without a populated `conflict_original_id`. The action is shown whenever at least one such conflict was scanned. It asks for confirmation and moves nothing unless every direct parent notebook exists, listing any notebook IDs that must still be created.
-
-On desktop, open **Tools → Orphaned note and conflict repair tool**. On mobile, open the plugin panels button and select **Orphaned note and conflict repair tool**. Then select **Scan for orphaned notes and notebooks**. Results appear while the paginated scan runs and show only the missing notebook ID plus the number of referencing notes and notebooks. You can stop a scan without losing its results.
+On desktop, open **Tools → Orphaned note repair tool**. On mobile, open the plugin panels button and select **Orphaned note repair tool**. Then select **Scan for orphaned notes and notebooks**. Results appear while the paginated scan runs and show only the missing notebook ID plus the number of referencing notes and notebooks. You can stop a scan without losing its results.
 
 Selecting **Recreate notebook** creates a root notebook with the original missing ID. Its title is `Recovered Notebook`, or `Recovered Notebook (2)`, `Recovered Notebook (3)`, and so on when needed to keep the title unique. If the notebook was originally inside a notebook hierarchy, you will need to manually move it back to the correct place, because the parent_id of the notebook cannot be recovered.
 
