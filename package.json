@@ -1,7 +1,7 @@
 {
-  "name": "joplin-orphaned-note-and-conflict-repair-tool",
+  "name": "joplin-orphaned-note-repair-tool",
   "version": "1.0.0",
-  "description": "Find and recreate notebooks referenced by orphaned Joplin items, and move conflicts for deleted notes back to their original notebooks.",
+  "description": "Find and recreate notebooks referenced by orphaned Joplin items.",
   "main": "dist/index.js",
   "files": [
     "publish/"
