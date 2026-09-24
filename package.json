@@ -1,5 +1,5 @@
 {
-  "name": "joplin-orphaned-note-repair-tool",
+  "name": "joplin-plugin-orphaned-note-repair-tool",
   "version": "1.0.0",
   "description": "Find and recreate notebooks referenced by orphaned Joplin items.",
   "main": "dist/index.js",
