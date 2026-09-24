@@ -1,0 +1,61 @@
+:root {
+  color-scheme: light dark;
+  font-family: var(--joplin-font-family, sans-serif);
+  color: var(--joplin-color, CanvasText);
+  background: var(--joplin-background-color, Canvas);
+}
+
+html, body { margin: 0; }
+body {
+  overflow: hidden;
+}
+main {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  padding: 16px;
+}
+h2, h3 { margin-top: 0; }
+.description { color: var(--joplin-color-faded, GrayText); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  border: 1px solid var(--joplin-divider-color, #8886);
+  border-radius: 4px;
+  padding: 7px 10px;
+  color: var(--joplin-color, ButtonText);
+  background: var(--joplin-background-color-hover3, ButtonFace);
+  cursor: pointer;
+}
+button:disabled { cursor: default; opacity: .6; }
+.danger { color: var(--joplin-color-error, #c33); }
+.progress { display: grid; gap: 6px; margin-top: 14px; }
+.progress[hidden] { display: none; }
+progress { width: 100%; }
+.status { min-height: 1.4em; font-weight: 600; }
+.results { display: grid; gap: 8px; padding: 0; list-style: none; }
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--joplin-divider-color, #8886);
+  border-radius: 5px;
+  padding: 10px;
+}
+.result div { display: grid; min-width: 0; gap: 4px; }
+.result code { overflow-wrap: anywhere; }
+.count { color: var(--joplin-color-faded, GrayText); font-size: .9em; }
+.conflict-actions {
+  margin-top: 16px;
+  border-top: 1px solid var(--joplin-divider-color, #8886);
+  padding-top: 16px;
+}
+.conflict-actions[hidden] { display: none; }
+.conflict-message { margin-top: 10px; }
+.conflict-message p { margin-bottom: 4px; }
+.conflict-message ul { margin-top: 0; padding-left: 24px; }

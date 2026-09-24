@@ -1,0 +1,29 @@
+{
+  "name": "joplin-orphaned-note-and-conflict-repair-tool",
+  "version": "1.0.0",
+  "description": "Find and recreate notebooks referenced by orphaned Joplin items, and move conflicts for deleted notes back to their original notebooks.",
+  "main": "dist/index.js",
+  "files": [
+    "publish/"
+  ],
+  "scripts": {
+    "build": "webpack --mode production",
+    "dist": "npm run build && node scripts/dist.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "joplin-plugin",
+    "joplin",
+    "recovery"
+  ],
+  "author": "mrjo118",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.7.13",
+    "copy-webpack-plugin": "^11.0.0",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.8.2",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}
