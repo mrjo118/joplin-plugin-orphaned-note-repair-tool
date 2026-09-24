@@ -18,4 +18,4 @@ Selecting **Recreate notebook** creates a root notebook with the original missin
 
 ## Demo
 
-https://github.com/user-attachments/assets/487a8a03-eedc-4969-b771-ce0f910614b7
+https://github.com/user-attachments/assets/384f11e7-48cd-40c2-a9de-af40eeb209e6
